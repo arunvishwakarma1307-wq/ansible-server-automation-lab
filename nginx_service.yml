@@ -1,0 +1,35 @@
+---
+- name: Manage Nginx and a test configuration file
+  hosts: managed
+  become: true
+
+  tasks:
+    - name: Ensure Nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Ensure Nginx is running and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Ensure Ansible lab configuration directory exists
+      ansible.builtin.file:
+        path: /etc/ansible-lab
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create a configuration file managed by Ansible
+      ansible.builtin.copy:
+        dest: /etc/ansible-lab/managed.conf
+        content: |
+          project=ansible-server-automation-lab
+          managed_by=ansible
+          purpose=configuration-management-practice
+        owner: root
+        group: root
+        mode: '0644'
