@@ -1,0 +1,11 @@
+---
+- name: Manage a Linux lab user
+  hosts: managed
+  become: true
+
+  tasks:
+    - name: Ensure lab user exists
+      ansible.builtin.user:
+        name: ansible_lab_user
+        state: present
+        create_home: true

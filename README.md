@@ -1,6 +1,6 @@
 # Ansible Server Automation Lab
 
-A hands-on Linux System Administration project using Ansible on Ubuntu Linux in WSL 2. This lab demonstrates SSH-based host connectivity, Nginx service management, configuration-file management, and idempotent automation.
+A hands-on Linux System Administration project using Ansible on Ubuntu Linux in WSL 2. This project demonstrates SSH-based host connectivity, Nginx service management, configuration-file management, Linux user management, and idempotent automation.
 
 ## Project Overview
 
@@ -18,13 +18,14 @@ The goal is to practise managing Linux system state through Ansible inventory fi
 - YAML
 - Ansible Inventory and Playbooks
 - Nginx
-- Linux service and file management
+- Linux user, service, and file management
 - Git and GitHub
 
 ## Project Structure
 
 - `inventory.ini` — defines the SSH-managed host.
 - `nginx_service.yml` — manages Nginx and a test configuration file.
+- `user_management.yml` — manages a dedicated Linux lab user.
 - `README.md` — project documentation.
 
 ## Features Implemented
@@ -46,7 +47,7 @@ The `nginx_service.yml` playbook uses Ansible's built-in modules to:
 
 - Ensure the Nginx package is installed.
 - Ensure the Nginx service is running.
-- Ensure the service is enabled.
+- Ensure the service is enabled at startup.
 
 ### 3. Configuration Directory Management
 
@@ -70,15 +71,37 @@ The file contains:
 
 The file is configured with owner and group `root:root` and permissions `0644`.
 
-### 5. Idempotent Automation
+This is a sample configuration file managed by Ansible, not an Nginx website configuration file.
 
-The playbook was run more than once.
+### 5. Linux User Management Automation
 
-During the initial local execution, Ansible created the configuration directory and file. Subsequent executions reported `changed=0` and `failed=0`.
+The `user_management.yml` playbook uses Ansible's built-in user module to:
 
-The playbook was also executed through the SSH inventory. The run completed with `ok=5`, `changed=0`, `unreachable=0`, and `failed=0`.
+- Ensure the `ansible_lab_user` Linux account exists.
+- Ensure a home directory is created for the account.
+- Use privilege escalation to manage the Linux account.
+- Maintain the desired state without creating duplicate accounts on repeated runs.
 
-These tests demonstrate that Ansible can repeatedly verify the desired system state without making unnecessary changes when the configuration is already correct.
+The playbook was executed successfully through the SSH inventory. The account was verified using the Linux `id` command, which returned the user's UID, GID, and group information.
+
+**Note:** The playbook ensures the account exists but does not configure a password or enable SSH login for the new account.
+
+### 6. Idempotent Automation
+
+The Nginx and configuration-management playbook was run more than once.
+
+During the initial execution, Ansible created the configuration directory and file. Subsequent executions reported `changed=0` and `failed=0`.
+
+The playbook was also executed through the SSH inventory. A subsequent run completed with:
+
+- `ok=5`
+- `changed=0`
+- `unreachable=0`
+- `failed=0`
+
+The user-management playbook was also executed successfully, and the created Linux account was verified.
+
+These tests demonstrate how Ansible can repeatedly verify the desired system state without making unnecessary changes when the configuration is already correct.
 
 ## How to Run
 
@@ -86,38 +109,53 @@ Go to the project directory:
 
     cd ~/ansible-server-automation-lab
 
-Test SSH-based Ansible connectivity:
+### 1. Test SSH-Based Ansible Connectivity
 
     ansible -i inventory.ini managed -m ansible.builtin.ping
 
-Check playbook syntax:
+A successful connection returns `SUCCESS` and `ping: pong`.
+
+### 2. Check Nginx Playbook Syntax
 
     ansible-playbook -i inventory.ini nginx_service.yml --syntax-check
 
-Perform a dry run:
+### 3. Perform an Nginx Playbook Dry Run
 
     ansible-playbook -i inventory.ini nginx_service.yml --check --diff -K
 
-Apply the playbook:
+Check mode simulates supported changes without normally applying them. Some tasks may behave differently in check mode than during a real run.
+
+### 4. Apply Nginx and Configuration Management
 
     ansible-playbook -i inventory.ini nginx_service.yml -K
 
+### 5. Check User Management Playbook Syntax
+
+    ansible-playbook -i inventory.ini user_management.yml --syntax-check
+
+### 6. Apply Linux User Management
+
+    ansible-playbook -i inventory.ini user_management.yml -K
+
 The `-K` option prompts for the privilege-escalation password when required.
 
-## Verified Test Results
+## Verification and Test Results
 
 The following checks were completed in the Ubuntu/WSL environment:
 
 - Ansible installation and version verification succeeded.
 - SSH key-based login to `127.0.0.1` succeeded.
 - Ansible connectivity returned `SUCCESS` and `ping: pong`.
-- Playbook syntax validation passed.
-- The dry run completed with `failed=0` and `unreachable=0`.
-- The playbook successfully verified Nginx package and service state.
+- Nginx playbook syntax validation passed.
+- The Nginx dry run completed without unreachable hosts or failed tasks.
+- The Nginx service and package state were successfully managed.
 - `/etc/ansible-lab/managed.conf` was created and its content verified.
 - Directory permissions were verified as `root:root 755`.
 - File permissions were verified as `root:root 644`.
-- A subsequent run reported `changed=0` and `failed=0`.
+- The Nginx playbook subsequently reported `changed=0` and `failed=0`.
+- User-management playbook syntax validation passed.
+- The `ansible_lab_user` account was created successfully.
+- The account was verified using the Linux `id` command.
 
 ## Current Limitations
 
@@ -125,6 +163,7 @@ The following checks were completed in the Ubuntu/WSL environment:
 - The SSH connection uses loopback address `127.0.0.1`; it is not a separate remote server.
 - Multi-server automation has not yet been tested.
 - The SSH key and inventory paths are configured for the current Linux username and directory structure.
+- The user-management playbook does not configure a password or SSH access for the lab account.
 
 ## Future Improvements
 
@@ -134,13 +173,16 @@ The following checks were completed in the Ubuntu/WSL environment:
 - Use variables and templates for reusable configuration.
 - Automate additional Linux administration tasks.
 - Test connectivity failures and recovery.
+- Expand user and group management automation.
 - Document and version-control future changes.
 
 ## Project Status
 
 **Status: In Progress**
 
-The local Ansible setup, SSH key-based connectivity, Nginx management playbook, configuration-file management, and idempotency tests have been completed and verified. Automation of a separate remote Linux server remains future work.
+The local Ansible setup, SSH key-based connectivity, Nginx management, configuration-file management, Linux user management, and initial idempotency testing have been implemented and verified in the local Ubuntu/WSL environment.
+
+Automation of a separate remote Linux server and multi-server management remain future work.
 
 ## Author
 
