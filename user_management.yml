@@ -3,9 +3,13 @@
   hosts: managed
   become: true
 
+  vars:
+    lab_username: ansible_lab_user
+    create_user_home: true
+
   tasks:
     - name: Ensure lab user exists
       ansible.builtin.user:
-        name: ansible_lab_user
+        name: "{{ lab_username }}"
         state: present
-        create_home: true
+        create_home: "{{ create_user_home }}"

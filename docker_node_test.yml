@@ -1,0 +1,30 @@
+---
+- name: Configure the Docker managed node
+  hosts: docker_nodes
+  become: true
+
+  tasks:
+    - name: Ensure Nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Ensure Ansible lab configuration directory exists
+      ansible.builtin.file:
+        path: /etc/ansible-lab
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create a configuration file managed by Ansible
+      ansible.builtin.copy:
+        dest: /etc/ansible-lab/managed.conf
+        content: |
+          project=ansible-server-automation-lab
+          managed_by=ansible
+          purpose=configuration-management-practice
+        owner: root
+        group: root
+        mode: '0644'
